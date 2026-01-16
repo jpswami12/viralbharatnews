@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+
+# Preferred domain
+Host: https://viralbharatnews.com
+
+# Sitemaps
+Sitemap: https://viralbharatnews.com/sitemap.xml
+Sitemap: https://viralbharatnews.com/news-sitemap.xml
+
+# Crawl optimization
+Crawl-delay: 1
+
+# Block non-essential paths (if added later)
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /admin/
+
+# Allow important assets
+Allow: /assets/
+Allow: /images/
+Allow: /*.css$
+Allow: /*.js$
+
+# IndexNow (static-compatible hint)
+User-agent: bingbot
+Allow: /

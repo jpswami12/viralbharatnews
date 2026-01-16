@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Viral Bharat News | वायरल भारत न्यूज़</title>
+    <link>https://viralbharatnews.com</link>
+    <description>India's Most Viral and Trending News</description>
+    <language>hi</language>
+    <item>
+      <title>ब्रेकिंग: सोशल मीडिया पर वायरल हुई ताज़ा खबर</title>
+      <link>https://viralbharatnews.com/article-link</link>
+      <description>खबर का संक्षिप्त विवरण यहाँ आएगा...</description>
+      <pubDate>Tue, 16 Jan 2024 09:00:00 +0530</pubDate>
+    </item>
+  </channel>
+</rss>
