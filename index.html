@@ -824,7 +824,7 @@
             <div class="footer-grid">
                 <div>
                     <div class="footer-logo">Viral Bharat <span>News</span></div>
-                    <p class="footer-about">वायरल भारत न्यूज़ भारत का प्रमुख डिजिटल प्लेटफॉर्म है जो आपको सबसे तेज़ और सबसे सटीक वायरल खबरों, ब्रेकिंग न्यूज़, और ट्रेंडिंग टॉपिक्स से अपडेट रखता है।</p>
+                    <p class="footer-about">वायरल भारत न्यूज़ भारत का प्रमुख डिजिटल प्लेटफॉर्म है जो आपको सबसे तेज़ और सबसे सटीक वायरल खबरों, ब्रेकिंग न्यूज़, और ट्रेंडिंग टॉपिक्स से अपडेट रखता है。</p>
                     
                     <!-- App Download Buttons -->
                     <h4 style="margin-top: 30px; font-size: 16px;">हमारा ऐप डाउनलोड करें</h4>
@@ -993,61 +993,78 @@
         };
     </script>
 
-    <!-- ===== AI AUTO NEWS ADD-ON START ===== -->
+    <!-- ===== GOOGLE SHEETS CMS ADD-ON START ===== -->
     <script>
     /*
-    AI Auto News Display Layer
-    Frontend only – GitHub Pages Safe
-    Does NOT change existing layout logic, integrates cleanly with updated CSS.
+    Is script ki madad se aap bina kisi "Backend" ya "Admin Panel" ke 
+    sidha Google Sheets (Excel) se apni website par news daal sakte hain.
     */
 
-    const AI_NEWS_API = "https://YOUR_BACKEND_ENDPOINT/api/news"; // backend later
-    const MAX_POSTS_PER_DAY = 20;
+    // 👇 1. YAHAN APNI GOOGLE SHEET KI ID DALEIN 👇
+    // (Pehle ek google sheet banayein, usme Title, Image, Date, Link, Description columns banayein, 
+    // use "Anyone with the link" par share karein aur link me se ID copy karke niche dalein)
+    const GOOGLE_SHEET_ID = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"; // Example id, please replace!
 
-    async function loadAINews(){
-      try{
-        const res = await fetch(AI_NEWS_API);
-        const data = await res.json();
+    const SHEET_API_URL = `https://docs.google.com/spreadsheets/d/${1wHNQKVsu7NSJsvtBjiQNTCOzwrRMEtZz8oDIJPibU5o}/gviz/tq?tqx=out:json&sheet=Sheet1`;
 
-        if(!data || !data.posts) return;
+    async function loadCustomNews() {
+      try {
+        const response = await fetch(SHEET_API_URL);
+        const text = await response.text();
+        
+        // Google Sheet ka data nikalna
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
+
+        // Agar sheet khali hai to ruk jayein
+        if(!rows || rows.length === 0) return;
 
         const container = document.getElementById("news-container");
         let html = "";
 
-        data.posts.slice(0,MAX_POSTS_PER_DAY).forEach((p,i)=>{
-          html += `
-          <article class="news-card">
-            <div class="card-img">
-              <img src="${p.image}" alt="${p.title}" loading="lazy">
-              <span class="category-label" style="background: var(--accent);">AI Trending</span>
-            </div>
-            <div class="card-content">
-              <div class="meta">
-                <span>
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    ${p.date}
-                </span>
-                <span>🤖 AI Curated</span>
-              </div>
-              <h3><a href="${p.url}" target="_blank" rel="noopener">${p.title}</a></h3>
-              <p>${p.description}</p>
-            </div>
-          </article>`;
+        // Padhna shuru karein (Row 2 se shuru, isliye index 0)
+        rows.forEach(row => {
+            // Check karein ki row khali to nahi hai
+            if(row.c[0] && row.c[0].v) {
+                const title = row.c[0] ? row.c[0].v : "Badi Khabar";
+                const image = row.c[1] ? row.c[1].v : "https://via.placeholder.com/400x250?text=News";
+                const date = row.c[2] ? row.c[2].v : "Aaj ki khabar";
+                const link = row.c[3] ? row.c[3].v : "#";
+                const description = row.c[4] ? row.c[4].v : "Yahan khabar ki puri jankari padhein...";
+
+                html += `
+                <article class="news-card">
+                    <div class="card-img">
+                    <img src="${image}" alt="${title}" loading="lazy">
+                    <span class="category-label" style="background: var(--primary-dark);">Eksklusiv</span>
+                    </div>
+                    <div class="card-content">
+                    <div class="meta">
+                        <span>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            ${date}
+                        </span>
+                        <span>✍️ Admin</span>
+                    </div>
+                    <h3><a href="${link}" target="_blank" rel="noopener">${title}</a></h3>
+                    <p>${description}</p>
+                    </div>
+                </article>`;
+            }
         });
 
-        // Add dynamically loaded AI news smoothly
+        // Aapki sheet ki news ko sabse upar dikhana
         container.insertAdjacentHTML("afterbegin", html);
 
-      }catch(e){
-        console.log("AI News Load Failed (Expected behavior without active backend)");
+      } catch(e) {
+        console.log("Google Sheet se news load hone me dikkat aayi. Kripya Sheet ID check karein.", e);
       }
     }
 
-    // refresh every 10 minutes
-    loadAINews();
-    setInterval(loadAINews, 600000);
+    // Google sheet se news load karna shuru karein
+    setTimeout(loadCustomNews, 1500); // Thoda wait karke load karein taaki main news pehle aa jaye
     </script>
-    <!-- ===== AI AUTO NEWS ADD-ON END ===== -->
+    <!-- ===== GOOGLE SHEETS CMS ADD-ON END ===== -->
 
 </body>
 </html>
