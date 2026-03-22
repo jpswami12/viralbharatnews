@@ -824,7 +824,7 @@
             <div class="footer-grid">
                 <div>
                     <div class="footer-logo">Viral Bharat <span>News</span></div>
-                    <p class="footer-about">वायरल भारत न्यूज़ भारत का प्रमुख डिजिटल प्लेटफॉर्म है जो आपको सबसे तेज़ और सबसे सटीक वायरल खबरों, ब्रेकिंग न्यूज़, और ट्रेंडिंग टॉपिक्स से अपडेट रखता है。</p>
+                    <p class="footer-about">वायरल भारत न्यूज़ भारत का प्रमुख डिजिटल प्लेटफॉर्म है जो आपको सबसे तेज़ और सबसे सटीक वायरल खबरों, ब्रेकिंग न्यूज़, और ट्रेंडिंग टॉपिक्स से अपडेट रखता है।</p>
                     
                     <!-- App Download Buttons -->
                     <h4 style="margin-top: 30px; font-size: 16px;">हमारा ऐप डाउनलोड करें</h4>
@@ -937,6 +937,10 @@
             } catch (error) {
                 console.error('Error fetching news:', error);
                 renderFallback();
+            } finally {
+                // YAHAN PAR FIX HAI: RSS News load hone ke baad hi Excel ki news load hogi
+                // isse RSS wali news aapki Excel wali news ko mitayegi nahi!
+                loadCustomNews();
             }
         }
 
@@ -1003,15 +1007,27 @@
     // 👇 1. YAHAN APNI GOOGLE SHEET KI ID DALEIN 👇
     // (Pehle ek google sheet banayein, usme Title, Image, Date, Link, Description columns banayein, 
     // use "Anyone with the link" par share karein aur link me se ID copy karke niche dalein)
-    const GOOGLE_SHEET_ID = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"; // Example id, please replace!
+    const GOOGLE_SHEET_ID = "1wHNQKVsu7NSJsvtBjiQNTCOzwrRMEtZz8oDIJPibU5o"; // <---- DHYAN DEIN: Isko change karna zaroori hai!
 
-    const SHEET_API_URL = `https://docs.google.com/spreadsheets/d/${1wHNQKVsu7NSJsvtBjiQNTCOzwrRMEtZz8oDIJPibU5o}/gviz/tq?tqx=out:json&sheet=Sheet1`;
+    const SHEET_API_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
 
     async function loadCustomNews() {
+      // Agar ID change nahi ki hai to ruk jayein
+      if(GOOGLE_SHEET_ID === "YOUR_GOOGLE_SHEET_ID_HERE") {
+        console.log("Kripya code mein apni Google Sheet ID dalein.");
+        return;
+      }
+
       try {
         const response = await fetch(SHEET_API_URL);
         const text = await response.text();
         
+        // Agar link public (Anyone with the link) nahi hai to error aayega
+        if (!text.includes("google.visualization.Query.setResponse")) {
+            console.error("Google Sheet ko read nahi kar paa raha hai. Sheet ko 'Anyone with the link' par share karein!");
+            return;
+        }
+
         // Google Sheet ka data nikalna
         const json = JSON.parse(text.substr(47).slice(0, -2));
         const rows = json.table.rows;
@@ -1022,15 +1038,15 @@
         const container = document.getElementById("news-container");
         let html = "";
 
-        // Padhna shuru karein (Row 2 se shuru, isliye index 0)
+        // Padhna shuru karein
         rows.forEach(row => {
-            // Check karein ki row khali to nahi hai
-            if(row.c[0] && row.c[0].v) {
-                const title = row.c[0] ? row.c[0].v : "Badi Khabar";
-                const image = row.c[1] ? row.c[1].v : "https://via.placeholder.com/400x250?text=News";
-                const date = row.c[2] ? row.c[2].v : "Aaj ki khabar";
-                const link = row.c[3] ? row.c[3].v : "#";
-                const description = row.c[4] ? row.c[4].v : "Yahan khabar ki puri jankari padhein...";
+            // Check karein ki row khali to nahi hai (khali column hone par null ata hai)
+            if(row && row.c && row.c[0] && row.c[0].v) {
+                const title = (row.c[0] && row.c[0].v) ? row.c[0].v : "Badi Khabar";
+                const image = (row.c[1] && row.c[1].v) ? row.c[1].v : "https://via.placeholder.com/400x250?text=News";
+                const date = (row.c[2] && row.c[2].v) ? row.c[2].v : new Date().toLocaleDateString('hi-IN');
+                const link = (row.c[3] && row.c[3].v) ? row.c[3].v : "#";
+                const description = (row.c[4] && row.c[4].v) ? row.c[4].v : "Yahan khabar ki puri jankari padhein...";
 
                 html += `
                 <article class="news-card">
@@ -1060,9 +1076,6 @@
         console.log("Google Sheet se news load hone me dikkat aayi. Kripya Sheet ID check karein.", e);
       }
     }
-
-    // Google sheet se news load karna shuru karein
-    setTimeout(loadCustomNews, 1500); // Thoda wait karke load karein taaki main news pehle aa jaye
     </script>
     <!-- ===== GOOGLE SHEETS CMS ADD-ON END ===== -->
 
